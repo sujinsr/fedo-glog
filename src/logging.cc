@@ -31,6 +31,7 @@
 
 #include "utilities.h"
 
+#include <map>
 #include <assert.h>
 #include <iomanip>
 #include <string>
@@ -438,6 +439,7 @@ class LogDestination {
   }
 
   static void DeleteLogDestinations();
+  static void copyDestinations(string);
 
  private:
   LogDestination(LogSeverity severity, const char* base_filename);
@@ -764,15 +766,43 @@ inline void LogDestination::WaitForSinks(LogMessage::LogMessageData* data) {
 }
 
 LogDestination* LogDestination::log_destinations_[NUM_SEVERITIES];
+static std::map<string, LogDestination *>initDestinations;
+
+template < typename T > std::string convString( const T& n )
+{
+  std::ostringstream stm ;
+  stm << n ;
+  return stm.str() ;
+}
 
 inline LogDestination* LogDestination::log_destination(LogSeverity severity) {
+  string mapKey;
+  string initName;
+
   assert(severity >=0 && severity < NUM_SEVERITIES);
+  initName = glog_internal_namespace_::ProgramInvocationShortName();
   if (!log_destinations_[severity]) {
     log_destinations_[severity] = new LogDestination(severity, NULL);
+	mapKey = initName + convString(severity);
+	initDestinations[mapKey] = log_destinations_[severity];
   }
   return log_destinations_[severity];
 }
 
+void LogDestination::copyDestinations(string initName)
+{
+	string mapKey;
+	for(int severity = 0; severity < NUM_SEVERITIES; severity++)
+	{
+		mapKey = initName + convString(severity);
+		if (initDestinations[mapKey])
+			log_destinations_[severity] = initDestinations[mapKey];
+		else
+			log_destinations_[severity] = NULL;
+	}
+}
+
+//Not used
 void LogDestination::DeleteLogDestinations() {
   for (int severity = 0; severity < NUM_SEVERITIES; ++severity) {
     delete log_destinations_[severity];
@@ -2037,13 +2067,14 @@ void MakeCheckOpValueString(std::ostream* os, const unsigned char& v) {
 
 void InitGoogleLogging(const char* argv0) {
   glog_internal_namespace_::InitGoogleLoggingUtilities(argv0);
+  LogDestination::copyDestinations(argv0);
 }
 
 void ShutdownGoogleLogging() {
   glog_internal_namespace_::ShutdownGoogleLoggingUtilities();
-  LogDestination::DeleteLogDestinations();
-  delete logging_directories_list;
-  logging_directories_list = NULL;
+  //LogDestination::DeleteLogDestinations();
+  //delete logging_directories_list;
+  //logging_directories_list = NULL;
 }
 
 _END_GOOGLE_NAMESPACE_

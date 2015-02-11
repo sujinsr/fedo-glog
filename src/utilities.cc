@@ -314,8 +314,9 @@ void SetCrashReason(const CrashReason* r) {
 }
 
 void InitGoogleLoggingUtilities(const char* argv0) {
-  CHECK(!IsGoogleLoggingInitialized())
-      << "You called InitGoogleLogging() twice!";
+  if (IsGoogleLoggingInitialized())
+	ShutdownGoogleLoggingUtilities();
+
   const char* slash = strrchr(argv0, '/');
 #ifdef OS_WINDOWS
   if (!slash)  slash = strrchr(argv0, '\\');
