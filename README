@@ -1,5 +1,12 @@
-This repository contains a C++ implementation of the Google logging
-module.  Documentation for the implementation is in doc/.
+
+This repositry contains the modified version of C++ Goolgle logging module.
+Documentation for the implementation is in doc/.
+
+CHANGES in modified version:
+It is not possible to initialize two element from the same process in original google logging implementation.
+This modified version give facility to initialize multiple element from same process.
 
 See INSTALL for (generic) installation instructions for C++: basically
-   ./configure && make && make install
+   ./configure 
+   make 
+   make install 
